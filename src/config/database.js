@@ -1,10 +1,11 @@
+// configurações de acesso ao banco de dados
 module.exports = {
-  host: '127.0.0.1',
-  username: 'admin',
-  password: 'admin',
-  database: 'trab-sbd',
-  dialect: 'postgres',
-  storage: './__tests__/database.sqlite',
+  host: "200.131.206.13",
+  username: "heitor_ff",
+  password: "11921bcc026",
+  database: "heitor_ff",
+  dialect: "postgres",
+  storage: "./__tests__/database.sqlite",
   dialectOptions: null,
   logging: false,
   pool: {

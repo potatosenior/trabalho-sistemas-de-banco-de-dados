@@ -1,141 +1,85 @@
-const db = require('./src/models');
-const readline = require('readline-sync');
+const db = require("./src/models");
+const readline = require("readline-sync");
 
-const faculdade = async () => {
+const hierarquia = async (idArbitro, idx = 1) => {
   try {
-    let option = 0;
+    // busca todos subordinados de um determinado arbitro, incluindo os dados da pessoa
+    const subordinados = await db.arbitro.findAll({
+      include: [
+        {
+          model: db.pessoa,
+        },
+      ],
+      where: {
+        idcoo: idArbitro,
+      },
+      raw: true,
+      nest: true,
+    });
 
-    do {
-      console.log('[1] Criar faculdade.');
-      console.log('[2] Listar faculdades.');
-      console.log('[3] Editar faculdade.');
-      console.log('[4] Excluir faculdade.');
-      option = readline.question('O que deseja fazer? ');
-
-      switch (option) {
-        case '1':
-          const transaction = await db.sequelize.transaction();
-
-          try {
-            const sigla = readline.question('Digite a sigla da faculdade: ');
-            const orcamento = readline.question(
-              'Digite o orcamento da faculdade: '
-            );
-            const idpes = readline.question('Digite o idpes da faculdade: ');
-            const nomeBloco = readline.question(
-              'Digite o nome do primeiro bloco da faculdade: '
-            );
-
-            const bloco = await db.bloco.create(
-              {
-                nome: nomeBloco,
-              },
-              {
-                transaction,
-              }
-            );
-
-            const faculdade = await db.faculdade.create(
-              {
-                sigla,
-                orcamento,
-                idpes: idpes || null,
-                idbloc: bloco.idbloc,
-              },
-              {
-                transaction,
-              }
-            );
-
-            await transaction.commit();
-
-            console.log(`Faculdade ${faculdade.sigla} criada com sucesso!`);
-          } catch (error) {
-            await transaction.rollback();
-
-            console.error(error.message);
-
-            return;
-          }
-          break;
-        case '2':
-          try {
-            const faculdades = await db.faculdade.findAll({
-              raw: true,
-            });
-
-            console.table(faculdades);
-          } catch (error) {
-            console.error(error.message);
-          }
-          break;
-        case '3':
-          try {
-            const id = readline.question('Digite o id da faculdade: ');
-            const siglaEdit = readline.question(
-              'Digite a nova sigla da faculdade: '
-            );
-            const orcamentoEdit = readline.question(
-              'Digite o novo orcamento da faculdade: '
-            );
-            const idpesEdit = readline.question(
-              'Digite o novo idpes da faculdade: '
-            );
-            const idblocEdit = readline.question(
-              'Digite o novo idbloc da faculdade: '
-            );
-
-            const faculdadeEdit = await db.faculdade.update(
-              {
-                sigla: siglaEdit || undefined,
-                orcamento: orcamentoEdit || undefined,
-                idpes: idpesEdit || undefined,
-                idbloc: idblocEdit || undefined,
-              },
-              {
-                where: {
-                  idfacul: id,
-                },
-                returning: true,
-                plain: true,
-              }
-            );
-
-            console.log(
-              `Faculdade ${faculdadeEdit[1].sigla} editada com sucesso!`
-            );
-          } catch (error) {
-            console.error(error.message);
-          }
-          break;
-        case '4':
-          try {
-            const idDelete = readline.question('Digite o id da faculdade: ');
-
-            await db.faculdade.destroy({
-              where: {
-                idfacul: idDelete,
-              },
-              returning: true,
-              plain: true,
-            });
-
-            console.log(`Faculdade excluída com sucesso!`);
-          } catch (error) {
-            console.error(error.message);
-          }
-          break;
-        default:
-          return;
+    for (const arbitro of subordinados) {
+      // para cada subordinado, busca também os subordinados desse arbitro
+      if (arbitro.idpes != idArbitro) {
+        arbitro.subordinados = await hierarquia(arbitro.idpes, idx + 1);
+        arbitro.nivel = idx;
       }
-    } while (option !== '0');
+    }
+
+    return subordinados;
   } catch (error) {
     console.error(error);
   }
 };
 
+const logHierarquia = async (arbitroCoordenador, idx = 0) => {
+  try {
+    // imprime no console os subordinados de cada arbitro
+    let prefix = "";
+    for (let i = 0; i < idx; i++) prefix += "\t";
+
+    console.log(
+      `| ${prefix} (${arbitroCoordenador.nivel},  ${arbitroCoordenador.idpes}, ${arbitroCoordenador.pessoa.nomepes}, ${arbitroCoordenador.idcoo})`
+    );
+
+    for (const arbitro of arbitroCoordenador.subordinados) {
+      // para cada subordinado, busca também os subordinados desse arbitro
+      if (arbitro.idpes != arbitroCoordenador.idpes) {
+        logHierarquia(arbitro, idx + 1);
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const see = async () => {
+  try {
+    const idArbitro = Number(readline.question("Digite o id do arbitro: "));
+    const arbitroRaiz = await db.arbitro.findByPk(idArbitro, {
+      include: [
+        {
+          model: db.pessoa,
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+    arbitroRaiz.nivel = 0;
+    arbitroRaiz.subordinados = await hierarquia(arbitroRaiz.idpes, 1);
+
+    logHierarquia(arbitroRaiz);
+
+    return;
+  } catch (error) {
+    console.error(error.message);
+    return;
+  }
+};
+
 const main = async () => {
-  await faculdade();
+  await see();
+
+  process.exit(1);
 };
 
 main();
