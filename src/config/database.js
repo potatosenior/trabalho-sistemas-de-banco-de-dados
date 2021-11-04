@@ -1,10 +1,10 @@
 module.exports = {
-  host: '127.0.0.1',
-  username: 'admin',
-  password: 'admin',
-  database: 'trab-sbd',
-  dialect: 'postgres',
-  storage: './__tests__/database.sqlite',
+  host: "200.131.206.13",
+  username: "guilherme_092011",
+  password: "11921bcc016",
+  database: "heitor_ff",
+  dialect: "postgres",
+  storage: "./__tests__/database.sqlite",
   dialectOptions: null,
   logging: false,
   pool: {

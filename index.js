@@ -1,29 +1,31 @@
-const db = require('./src/models');
-const readline = require('readline-sync');
+const db = require("./src/models");
+const readline = require("readline-sync");
 
 const faculdade = async () => {
   try {
     let option = 0;
 
     do {
-      console.log('[1] Criar faculdade.');
-      console.log('[2] Listar faculdades.');
-      console.log('[3] Editar faculdade.');
-      console.log('[4] Excluir faculdade.');
-      option = readline.question('O que deseja fazer? ');
+      console.log("[1] Criar faculdade.");
+      console.log("[2] Listar faculdades.");
+      console.log("[3] Editar faculdade.");
+      console.log("[4] Excluir faculdade.");
+      option = readline.question("O que deseja fazer? ");
 
       switch (option) {
-        case '1':
+        case "1":
           const transaction = await db.sequelize.transaction();
 
           try {
-            const sigla = readline.question('Digite a sigla da faculdade: ');
+            const sigla = readline.question("Digite a sigla da faculdade: ");
             const orcamento = readline.question(
-              'Digite o orcamento da faculdade: '
+              "Digite o orcamento da faculdade: "
             );
-            const idpes = readline.question('Digite o idpes da faculdade: ');
+            const idpes = readline.question(
+              "Digite o id do coordenador da faculdade: "
+            );
             const nomeBloco = readline.question(
-              'Digite o nome do primeiro bloco da faculdade: '
+              "Digite o nome do primeiro bloco da faculdade: "
             );
 
             const bloco = await db.bloco.create(
@@ -51,14 +53,13 @@ const faculdade = async () => {
 
             console.log(`Faculdade ${faculdade.sigla} criada com sucesso!`);
           } catch (error) {
+            console.error(error);
             await transaction.rollback();
 
             console.error(error.message);
-
-            return;
           }
           break;
-        case '2':
+        case "2":
           try {
             const faculdades = await db.faculdade.findAll({
               raw: true,
@@ -69,20 +70,20 @@ const faculdade = async () => {
             console.error(error.message);
           }
           break;
-        case '3':
+        case "3":
           try {
-            const id = readline.question('Digite o id da faculdade: ');
+            const id = readline.question("Digite o id da faculdade: ");
             const siglaEdit = readline.question(
-              'Digite a nova sigla da faculdade: '
+              "Digite a nova sigla da faculdade: "
             );
             const orcamentoEdit = readline.question(
-              'Digite o novo orcamento da faculdade: '
+              "Digite o novo orcamento da faculdade: "
             );
             const idpesEdit = readline.question(
-              'Digite o novo idpes da faculdade: '
+              "Digite o novo idpes da faculdade: "
             );
             const idblocEdit = readline.question(
-              'Digite o novo idbloc da faculdade: '
+              "Digite o novo idbloc da faculdade: "
             );
 
             const faculdadeEdit = await db.faculdade.update(
@@ -108,9 +109,9 @@ const faculdade = async () => {
             console.error(error.message);
           }
           break;
-        case '4':
+        case "4":
           try {
-            const idDelete = readline.question('Digite o id da faculdade: ');
+            const idDelete = readline.question("Digite o id da faculdade: ");
 
             await db.faculdade.destroy({
               where: {
@@ -126,9 +127,9 @@ const faculdade = async () => {
           }
           break;
         default:
-          return;
+          break;
       }
-    } while (option !== '0');
+    } while (option !== "0");
   } catch (error) {
     console.error(error);
   }
