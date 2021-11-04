@@ -2,7 +2,7 @@ module.exports = {
   host: "200.131.206.13",
   username: "guilherme_092011",
   password: "11921bcc016",
-  database: "heitor_ff",
+  database: "guilherme_092011",
   dialect: "postgres",
   storage: "./__tests__/database.sqlite",
   dialectOptions: null,
